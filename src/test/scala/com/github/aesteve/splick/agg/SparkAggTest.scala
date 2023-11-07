@@ -1,12 +1,12 @@
-package com.github.aesteve.splick
+package com.github.aesteve.splick.agg
 
 import com.github.aesteve.splick.testmodel.{Person, PersonContact}
-import org.scalatest.funsuite.AnyFunSuite
+import com.github.aesteve.splick.{SparkExtensions, SparkTestBase}
 import slick.jdbc.H2Profile.api._
 
-class UdafTest extends AnyFunSuite with SparkExtensions {
+class SparkAggTest extends SparkTestBase with SparkExtensions {
 
-  // This variables could be factorized and re-used across many tests
+  // These variables could be factorized and re-used across many tests
   val personAndItsContacts = TableQuery[Person]
     .join(TableQuery[PersonContact])
     .on((person, contact) => person.id === contact.id)
@@ -18,9 +18,9 @@ class UdafTest extends AnyFunSuite with SparkExtensions {
   test("Can collect_set") {
     val citiesGroupedByLastNames = lastNamesOfNamesLikeMe
       .map { case (groupingCol, group) =>
-        (groupingCol, (group.map { case (_, contact) => contact.city }).collectSet )
+        (groupingCol,  group.map { case (_, contact) => contact.city }.collectSet)
       }
-    println(citiesGroupedByLastNames.result.statements.head)
+    assertValidSparkSQLQuery(citiesGroupedByLastNames)
   }
 
 }
